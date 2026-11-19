@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Enterprise RAG Platform</title>
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Clean Enterprise Stylesheets -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/chat.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <!-- Mobile Drawer Backdrop -->
+  <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+  <div class="app-container">
+    
+    <!-- Sidebar -->
+    <aside id="app-sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <a href="javascript:void(0)" class="brand" onclick="if(window.App) App.switchView('chat')">
+          <div class="brand-icon">R</div>
+          <span class="brand-title">Enterprise RAG</span>
+        </a>
+      </div>
+
+      <!-- New Chat Button (MNC AI platform standard) -->
+      <div class="sidebar-action-container">
+        <button id="btn-new-chat" class="btn btn-new-chat" title="Start a fresh chat conversation">
+          <span class="btn-icon">＋</span>
+          <span>New Chat</span>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Recent Chats Section (Ordered by recency like Gemini/ChatGPT) -->
+        <div class="nav-section-title" style="display: flex; align-items: center; justify-content: space-between;">
+          <span>Recent Chats</span>
+          <span id="sidebar-chat-count" class="nav-badge" style="font-size: 0.65rem;">0</span>
+        </div>
+        
+        <div id="sidebar-chat-list" class="sidebar-chat-list">
+          <!-- Injected dynamically via chat.js -->
+        </div>
+
+        <div class="nav-section-divider"></div>
+
+        <div class="nav-section-title">Knowledge Vault</div>
+        
+        <button class="nav-item" data-view="documents">
+          <span class="nav-icon">📁</span>
+          <span>Documents</span>
+          <span id="sidebar-doc-badge" class="nav-badge">0</span>
+        </button>
+      </nav>
+
+      <!-- Tenant Card -->
+      <div class="sidebar-footer">
+        <div class="tenant-pill">
+          <div class="tenant-pill-header">
+            <span id="sidebar-tenant-name" class="tenant-org-name">Not Signed In</span>
+            <span class="tenant-status-dot"></span>
+          </div>
+          <div id="sidebar-key-snippet" class="tenant-key-snippet">No API Key Set</div>
+          <button id="switch-tenant-btn" class="btn tenant-switch-btn">
+            Change API Key
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="workspace">
+      
+      <!-- Header -->
+      <header class="workspace-header">
+        <div class="header-left">
+          <button id="mobile-menu-toggle" class="btn-icon mobile-menu-btn" aria-label="Toggle navigation">
+            ☰
+          </button>
+          <div class="header-title-group">
+            <h2 id="view-header-title">Chat</h2>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div style="font-size: 0.76rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem;">
+            <span>Tenant:</span>
+            <strong id="header-active-tenant" style="color: var(--text-primary);">None</strong>
+          </div>
+
+          <div id="system-health-indicator" class="system-status-indicator">
+            <span class="status-dot"></span>
+            <span id="system-health-text" class="status-text">Connected</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Views -->
+      <div class="views-container">
+
+        <!-- VIEW 1: Chat -->
+        <section id="view-chat" class="tab-view active">
+          <div class="chat-view-container">
+            
+            <!-- Clean Chat Header with Document Scope Selector -->
+            <div class="chat-controls-bar" style="display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 0.45rem;">
+                <span style="font-size: 0.74rem; color: var(--text-muted);">Source:</span>
+                <select id="chat-doc-filter-select" class="control-select" style="max-width: 260px;" title="Select a specific document or search all">
+                  <option value="">All Uploaded Documents</option>
+                </select>
+              </div>
+              <button id="clear-chat-btn" class="btn btn-ghost btn-sm" title="Clear conversation">
+                Clear
+              </button>
+            </div>
+
+            <!-- Messages Stream -->
+            <div id="chat-stream" class="chat-stream">
+              <div id="chat-stream-inner" class="chat-stream-inner">
+
+                <!-- Clean Empty State -->
+                <div id="chat-empty-state" class="chat-empty-state">
+                  <div class="empty-state-icon">💬</div>
+                  <h3 class="empty-state-title">Search Tenant Documents</h3>
+                  <p class="empty-state-desc">
+                    Ask questions grounded in your uploaded company policies, specifications, and files.
+                  </p>
+
+                  <div class="suggestion-grid">
+                    <div class="suggestion-card" data-prompt="What are the vacation and leave policies?">
+                      <span class="suggestion-prompt">What are the vacation and leave policies?</span>
+                      <span class="suggestion-tag">HR Policy →</span>
+                    </div>
+
+                    <div class="suggestion-card" data-prompt="What are our security compliance standards?">
+                      <span class="suggestion-prompt">What are our security compliance standards?</span>
+                      <span class="suggestion-tag">Compliance →</span>
+                    </div>
+
+                    <div class="suggestion-card" data-prompt="Summarize the core technical architecture.">
+                      <span class="suggestion-prompt">Summarize the core technical architecture.</span>
+                      <span class="suggestion-tag">Engineering →</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Prompt Dock -->
+            <div class="prompt-dock-container">
+              <!-- Scoped Document Indicator Pill & Upload Indicator -->
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <div id="prompt-scope-badge" class="prompt-scope-badge hidden">
+                  <span class="scope-icon">📄</span>
+                  <span id="prompt-scope-name" class="scope-name">All Uploaded Documents</span>
+                  <button type="button" id="prompt-scope-clear-btn" class="scope-clear-btn" title="Clear document filter and search all">×</button>
+                </div>
+                <div id="prompt-upload-status" class="prompt-scope-badge prompt-upload-pill hidden" style="background: rgba(14, 165, 233, 0.15); border-color: rgba(14, 165, 233, 0.4); color: var(--accent-primary);">
+                  <span class="spinner" style="font-size: 0.75rem;">↻</span>
+                  <span id="prompt-upload-status-text" class="scope-name">Ingesting document...</span>
+                </div>
+              </div>
+
+              <!-- Hidden File Input for Direct Chat Upload -->
+              <input type="file" id="chat-direct-file-input" class="hidden" accept=".pdf,.docx,.txt">
+
+              <div class="prompt-dock-inner">
+                <!-- Document Attachment Popover -->
+                <div id="doc-picker-popover" class="doc-picker-popover hidden">
+                  <div class="doc-picker-header">
+                    <span>Filter Search Source</span>
+                    <button type="button" id="doc-picker-close-btn" class="doc-picker-close" title="Close">×</button>
+                  </div>
+                  <div id="doc-picker-list" class="doc-picker-list">
+                    <button type="button" class="doc-picker-item active" data-doc-id="">
+                      <span class="item-icon">🌐</span>
+                      <div class="item-info">
+                        <span class="item-title">All Uploaded Documents</span>
+                        <span class="item-subtitle">Global semantic search across tenant vault</span>
+                      </div>
+                    </button>
+                  </div>
+                  <button type="button" id="doc-picker-upload-btn" class="doc-picker-upload-link">
+                    ＋ Upload New Document to Knowledge Vault
+                  </button>
+                </div>
+
+                <form id="chat-prompt-form" style="width: 100%; display: flex; align-items: flex-end;">
+                  <button type="button" id="prompt-select-doc-btn" class="btn btn-icon" style="padding: 0.65rem 0.5rem 0.65rem 0.85rem; font-size: 1.15rem; color: var(--text-muted); cursor: pointer;" title="Select specific document to query">
+                    +
+                  </button>
+                  <textarea 
+                    id="prompt-input" 
+                    class="prompt-textarea" 
+                    style="padding-left: 0.4rem;"
+                    placeholder="Ask about your documents... (Enter to send, Shift+Enter for newline)"
+                    rows="1"
+                    required
+                  ></textarea>
+                  <button type="submit" id="prompt-send-btn" class="btn prompt-send-btn" aria-label="Send">
+                    ↑
+                  </button>
+                </form>
+              </div>
+              <div class="prompt-footer-hint">
+                Isolated vector search scoped strictly to your tenant organization.
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- VIEW 2: Documents -->
+        <section id="view-documents" class="tab-view">
+          <div class="doc-section">
+            
+            <!-- Dropzone -->
+            <div id="doc-dropzone" class="dropzone">
+              <input type="file" id="doc-file-input" class="hidden" accept=".pdf,.docx,.txt,.md">
+              <span class="dropzone-icon">📁</span>
+              <div class="dropzone-title">Drop documents here, or click to browse</div>
+              <div class="dropzone-subtitle">Supported formats: PDF, Word (.docx), TXT, Markdown (up to 25 MB)</div>
+            </div>
+
+            <!-- Controls -->
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <h3 style="font-size: 0.95rem; font-weight: 600;">Uploaded Documents</h3>
+              <button id="refresh-docs-btn" class="btn btn-secondary btn-sm">
+                Refresh
+              </button>
+            </div>
+
+            <!-- Table -->
+            <div id="doc-table-wrapper" class="doc-table-wrapper">
+              <table class="doc-table">
+                <thead>
+                  <tr>
+                    <th>Document</th>
+                    <th>Size</th>
+                    <th>Chunks</th>
+                    <th>Status</th>
+                    <th>Uploaded</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="doc-table-body">
+                  <!-- Injected via documents.js -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="doc-empty-state" class="chat-empty-state hidden" style="padding: 2rem 1rem;">
+              <h3 class="empty-state-title" style="font-size: 1rem;">No Documents Found</h3>
+              <p class="empty-state-desc" style="margin-bottom: 0;">
+                Upload a document above to index it for semantic search.
+              </p>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: Tenant Authentication (API Key Only - No Public Self-Registration) -->
+  <div id="auth-modal" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Enterprise Sign In</h3>
+        <button id="auth-modal-close" class="btn-icon" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="form-existing-key">
+          <div class="form-group">
+            <label for="input-api-key" class="form-label">Tenant API Key</label>
+            <input 
+              type="password" 
+              id="input-api-key" 
+              class="input-control" 
+              placeholder="sk_live_..." 
+              required
+            >
+            <small style="color: var(--text-muted); font-size: 0.72rem; margin-top: 0.25rem; display: block;">
+              Enter the API key issued to your company by the platform administrator.
+            </small>
+          </div>
+
+          <div style="display: flex; gap: 0.6rem; margin-top: 1rem;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">
+              Sign In
+            </button>
+            <button type="button" id="btn-disconnect-key" class="btn btn-danger-ghost btn-sm">
+              Disconnect
+            </button>
+          </div>
+        </form>
+
+        <div style="margin-top: 1.15rem; padding-top: 0.85rem; border-top: 1px solid var(--border-subtle); font-size: 0.73rem; color: var(--text-muted); text-align: center;">
+          Need tenant credentials? Contact your system administrator to onboard your organization.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Citation Inspector -->
+  <div id="citation-modal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 540px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1rem;">📄</span>
+          <div>
+            <h3 id="citation-modal-filename" style="font-size: 0.9rem;">Document Citation</h3>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">
+              Chunk Index: #<span id="citation-modal-chunkidx">0</span>
+            </div>
+          </div>
+        </div>
+        <button id="citation-modal-close" class="btn-icon" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div style="display: flex; gap: 0.4rem; margin-bottom: 0.75rem;">
+          <span class="file-type-pill" style="color: var(--accent-emerald);">
+            Similarity: <strong id="citation-modal-score">0.0%</strong>
+          </span>
+          <span class="file-type-pill">
+            Doc ID: <strong id="citation-modal-docid">N/A</strong>
+          </span>
+        </div>
+
+        <div class="form-label" style="margin-bottom: 0.35rem;">
+          Extracted Text Chunk:
+        </div>
+
+        <div 
+          id="citation-snippet-content" 
+          style="padding: 0.75rem; border-radius: var(--border-radius-sm); background-color: var(--bg-app); border: 1px solid var(--border-medium); font-size: 0.82rem; line-height: 1.5; color: #cbd5e1; max-height: 220px; overflow-y: auto; white-space: pre-wrap;"
+        >
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="copy-citation-snippet-btn" class="btn btn-secondary btn-sm">
+          Copy Snippet
+        </button>
+        <button type="button" onclick="ChatModule.closeCitationModal()" class="btn btn-primary btn-sm">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/documents.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

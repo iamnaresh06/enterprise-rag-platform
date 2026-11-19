@@ -1,0 +1,147 @@
+{
+  "info": {
+    "_postman_id": "c7a8e1b2-8f3d-4c2e-9b1a-0d1e2f3a4b5c",
+    "name": "Enterprise Multi-Tenant Agentic RAG API",
+    "description": "Postman API Collection for testing the Multi-Tenant Enterprise Agentic RAG microservice endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "sk_live_replace_with_actual_key",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "System Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/health/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "health", ""]
+        },
+        "description": "Public liveness probe to verify microservice status."
+      }
+    },
+    {
+      "name": "1. Register Tenant",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Acme Corporation\",\n  \"key_name\": \"Primary Production Key\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/auth/tenants/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "auth", "tenants", ""]
+        },
+        "description": "Registers an enterprise tenant and generates their primary API key."
+      }
+    },
+    {
+      "name": "2. List Tenant Keys",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/auth/keys/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "auth", "keys", ""]
+        },
+        "description": "Lists all active API keys for the calling enterprise tenant."
+      }
+    },
+    {
+      "name": "3. Upload Document",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/documents/upload/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "documents", "upload", ""]
+        },
+        "description": "Uploads PDF/TXT document to S3 and triggers Celery background chunking and vector indexing."
+      }
+    },
+    {
+      "name": "4. List Tenant Documents",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/documents/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "documents", ""]
+        },
+        "description": "Lists all uploaded documents and processing statuses for the calling tenant."
+      }
+    },
+    {
+      "name": "5. Query Agentic RAG",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"What is the policy regarding remote work and annual leave?\",\n  \"top_k\": 4\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/query/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "query", ""]
+        },
+        "description": "Queries the AI agent with Pinecone metadata filtering and returns citations."
+      }
+    }
+  ]
+}
